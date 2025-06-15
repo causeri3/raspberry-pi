@@ -8,7 +8,7 @@ from pathlib import Path
 from datetime import datetime
 import math
 
-
+image_path = "path"
 # ___________ LOAD MODEL _________________ #
 pipe = AutoPipelineForImage2Image.from_pretrained("sd-legacy/stable-diffusion-v1-5",
                                                   #torch_dtype=torch.float32,
@@ -50,7 +50,7 @@ PROMPT = "dmt"
 REZ = (512, 512)
 # ___________ YALLA _________________ #
 images_list = []
-init_image = load_image(r"/home/vanessacausemann/src/yolo-pi/selfie_14_june_16_48.png").resize(REZ)
+init_image = load_image(image_path).resize(REZ)
 
 images_list.append(init_image)
 
