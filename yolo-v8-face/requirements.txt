@@ -1,0 +1,8 @@
+pillow
+numpy
+accelerate
+sentencepiece
+huggingface-hub
+supervision
+ultralytics
+openvino
