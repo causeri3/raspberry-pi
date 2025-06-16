@@ -2,7 +2,7 @@ import logging
 from utils.video import Stream
 import cv2
 from PIL import Image
-import datetime
+from datetime import datetime
 from utils.transformation_screen import show_loader, play_gif_frames
 # from utils.args import get_args
 #
@@ -32,4 +32,4 @@ selfie = stream.draw_boxes()
 # cv2.waitKey(1)
 
 stamp = datetime.now().strftime("%-d_%B_%H_%M").lower()
-cv2.imwrite("selfie" + '_' + stamp + ".png", selfie)
+cv2.imwrite("yolo-v8-face/images/selfie" + '_' + stamp + ".png", selfie)
