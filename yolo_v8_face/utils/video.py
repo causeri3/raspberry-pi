@@ -3,7 +3,7 @@ import logging
 import numpy as np
 import time
 
-from utils.predict import Predict
+from yolo_v8_face.utils.predict import Predict
 
 class Stream:
     def __init__(self,

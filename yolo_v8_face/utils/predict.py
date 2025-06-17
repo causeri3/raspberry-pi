@@ -7,8 +7,8 @@ from huggingface_hub import hf_hub_download
 from supervision import Detections
 from PIL import Image
 
-from utils.payloads import json_payload, image_payload
-from utils.args import get_args
+from yolo_v8_face.utils.payloads import json_payload, image_payload
+from yolo_v8_face.utils.args import get_args
 
 
 args, unknown = get_args()
