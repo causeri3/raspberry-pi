@@ -2,27 +2,27 @@ import cv2
 import numpy as np
 import tensorflow as tf
 import tensorflow_hub as hub
-import os
 from PIL import Image
+import logging
+import time
+import random
+import os
+
+def get_random_style_image(style_folder=r"neural_style_transfer/style-images"):
+    all_files = os.listdir(style_folder)
+    jpg_files = [f for f in all_files if f.lower().endswith('.jpg')]
+    random_file = random.choice(jpg_files)
+    style_path = os.path.join(style_folder, random_file)
+    return style_path
+
 
 def transfer_style(content_image,
-                   style_path=r"style-images/schalt.jpg",
-                   model_path=r"model"):
+                   style_path,
+                   model_path=r"neural_style_transfer/model"):
 
     style_image = cv2.imread(style_path)
-    size_threshold = 2000
-    resizing_shape = (1000, 1000)
-    content_shape = content_image.shape
-    style_shape = style_image.shape
-
-    if content_shape[0] > size_threshold or content_shape[1] > size_threshold:
-        content_image = cv2.resize(content_image, resizing_shape)
-    if style_shape[0] > size_threshold or style_shape[1] > size_threshold:
-        style_image = cv2.resize(style_image, resizing_shape)
-
     content_image = content_image.astype(np.float32)[np.newaxis, ...] / 255.
     style_image = style_image.astype(np.float32)[np.newaxis, ...] / 255.
-    style_image = tf.image.resize(style_image, (256, 256))
 
     hub_module = hub.load(model_path)
     outputs = hub_module(tf.constant(content_image), tf.constant(style_image))
@@ -33,11 +33,18 @@ def transfer_style(content_image,
 
 
 def generate_image_list(content_image):
+    style_path = get_random_style_image()
     frames = []
-
-    for i in range(10):
+    start_time = time.time()
+    amount_pics = 10
+    for i in range(amount_pics):
         print(f"Iteration {i + 1}")
-        content_image = transfer_style(content_image)
+        content_image = transfer_style(content_image, style_path)
 
         img_rgb = cv2.cvtColor(content_image, cv2.COLOR_BGR2RGB)
         frames.append(Image.fromarray(img_rgb))
+        bounce_frames = frames + frames[-2::-1]
+        logging.info("Stylising {} pics took {:.2f} sec".format(amount_pics, time.time() - start_time))
+
+    return bounce_frames
+
