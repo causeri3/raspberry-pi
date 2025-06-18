@@ -66,6 +66,10 @@ def selfie_capture_worker():
 def main_loop():
     frame_index = 0
     is_generating = False
+    fps = 6
+    pause = 2
+
+    longer_delay_ms = max(int(pause * 1000), 1)
 
     # Start first selfie capture thread
     threading.Thread(target=selfie_capture_worker).start()
@@ -82,15 +86,24 @@ def main_loop():
         # Draw gif frame or noise
         with gif_lock:
             if frames:
-                frame = frames[frame_index % len(frames)]
-                frame_index += 1
+                frames_bgr = [cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR) for img in frames]
+                bounce_frames = frames_bgr + frames_bgr[-2::-1]
+                delay_ms = max(int(1000 / fps), 1)
             else:
-                frame = np.random.randint(0, 256, (512, 512, 3), dtype=np.uint8)
+                bounce_frames = [np.random.randint(0, 256, (512, 512, 3), dtype=np.uint8)]
+                delay_ms = 100
 
-        cv2.imshow("TRANSFORMATION", frame)
-        key = cv2.waitKey(100)
-        if key == 27:  # ESC to quit
-            break
+        for i, frame in enumerate(bounce_frames):
+            cv2.imshow("TRANSFORMATION", frame)
+
+            is_turning_point = (i == 0 or i == len(frames_bgr) - 1)
+            wait = longer_delay_ms if is_turning_point else delay_ms
+
+            key = cv2.waitKey(wait)
+            if key == 27:  # ESC to quit
+                cv2.destroyAllWindows()
+                return
+
 
         # If new gif frames ready → start new selfie capture
         if new_frames_event.is_set():
