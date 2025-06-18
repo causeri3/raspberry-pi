@@ -34,31 +34,37 @@ selfie_ready_event = threading.Event()
 selfie_image = None
 
 def processing_worker(selfie):
-    sdxl_result = {}
-    sdxl_thread = threading.Thread(target=request_sdxlturbo, args=(selfie, sdxl_result))
-    sdxl_thread.start()
+    try:
+        sdxl_result = {}
+        sdxl_thread = threading.Thread(target=request_sdxlturbo, args=(selfie, sdxl_result))
+        sdxl_thread.start()
 
-    logging.info("Generating NST images...")
-    nst_images = generate_image_list(selfie)
+        logging.info("Generating NST images...")
+        nst_images = generate_image_list(selfie)
 
-    sdxl_thread.join(timeout=600)
+        sdxl_thread.join(timeout=600)
 
-    if sdxl_result.get('success', False):
-        gif_frames = [img for img in sdxl_result['images']]
-    else:
-        gif_frames = [np.array(img) for img in nst_images]
+        if sdxl_result.get('success', False):
+            gif_frames = [img for img in sdxl_result['images']]
+        else:
+            gif_frames = [np.array(img) for img in nst_images]
 
-    with gif_lock:
-        global frames
-        frames = gif_frames
-        new_frames_event.set()
+        with gif_lock:
+            global frames
+            frames = gif_frames
+            new_frames_event.set()
+    except Exception as e:
+        logging.exception("processing_worker crashed! Exiting whole process...")
+        import os
+        os._exit(1)
 
 def selfie_capture_worker():
     global selfie_image
     stream = Stream(see_detection=False, available_devices=[0])
 
-    selfie = stream.draw_boxes()  # This is blocking, but now it runs in a thread
+    selfie = stream.draw_boxes()
     logging.info("Selfie captured.")
+    logging.info(f"Selfie capture result: {type(selfie)}, None? {selfie is None}")
 
     with selfie_lock:
         selfie_image = selfie
@@ -71,7 +77,6 @@ def main_loop():
     next_selfie_time = 0
     longer_delay_ms = max(int(pause * 1000), 1)
 
-    # Start first selfie capture thread
     threading.Thread(target=selfie_capture_worker).start()
 
     while True:
@@ -104,10 +109,10 @@ def main_loop():
                 cv2.destroyAllWindows()
                 return
 
-            # Check if we should start next selfie capture
             if new_frames_event.is_set():
                 is_generating = False
                 new_frames_event.clear()
+                # wait for 30 sec
                 next_selfie_time = time.time() + 30
 
             if not selfie_ready_event.is_set() and not is_generating and next_selfie_time != 0:
