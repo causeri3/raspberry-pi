@@ -46,8 +46,7 @@ def generate_image_list(content_image):
 
         img_rgb = cv2.cvtColor(content_image, cv2.COLOR_BGR2RGB)
         frames.append(Image.fromarray(img_rgb))
-        bounce_frames = frames + frames[-2::-1]
     logging.info("Stylising {} pics took {:.2f} sec".format(AMOUNT_PICS, time.time() - start_time))
 
-    return bounce_frames
+    return frames
 
