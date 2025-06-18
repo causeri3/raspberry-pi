@@ -38,13 +38,6 @@ selfie_lock = threading.Lock()
 selfie_ready_event = threading.Event()
 selfie_image = None
 
-def watchdog(target_thread):
-    while True:
-        time.sleep(1)
-        if not target_thread.is_alive():
-            logging.error("WATCHDOG: Worker crashed! Exiting process...")
-            os._exit(1)
-
 def request_sdxlturbo_with_flag(selfie, result_container, stop_flag):
     request_sdxlturbo(selfie, result_container)
     if result_container.get('success', False):
