@@ -12,8 +12,7 @@ from installation_utils.utils import (request_sdxlturbo,
 #
 # args, unknown = get_args()
 
-
-WIDTH, HEIGHT   = (512, 512)
+WIDTH, HEIGHT  = (1280, 1024)
 
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
@@ -43,6 +42,7 @@ def processing_worker(selfie):
         sdxl_result = {}
         stop_flag = threading.Event()
 
+        sdxl_start = time.time()
         sdxl_thread = threading.Thread(
             target=request_sdxlturbo_with_flag,
             args=(selfie, sdxl_result, stop_flag))
@@ -53,6 +53,7 @@ def processing_worker(selfie):
         sdxl_thread.join(timeout=180)
 
         if sdxl_result.get('success', False):
+            logging.info(f"SDXLTurbo took {time.time() - sdxl_start} sec")
             gif_frames = [img for img in sdxl_result['images']]
         else:
             gif_frames = [np.array(img) for img in nst_images]
@@ -72,7 +73,7 @@ def selfie_capture_worker():
 
     selfie = stream.draw_boxes()
     logging.info("Selfie captured.")
-    logging.info(f"Selfie capture result: {type(selfie)}, None? {selfie is None}")
+    # logging.info(f"Selfie capture result: {type(selfie)}, None? {selfie is None}")
 
     with selfie_lock:
         selfie_image = selfie
@@ -106,7 +107,7 @@ def main_loop():
                 bounce_frames = frames_bgr + frames_bgr[-2::-1]
                 delay_ms = max(int(1000 / fps), 1)
             else:
-                bounce_frames = [np.random.randint(0, 256, (512, 512, 3), dtype=np.uint8)]
+                bounce_frames = [np.random.randint(0, 256, (HEIGHT, HEIGHT, 3), dtype=np.uint8)]
                 delay_ms = 0
 
         for i, frame in enumerate(bounce_frames):
@@ -117,7 +118,9 @@ def main_loop():
                 progress = min(1.0, (time.time() - loading_start_time) / loading_duration_sec)
                 draw_loading_bar(frame_copy, progress)
 
-            cv2.imshow("TRANSFORMATION", frame_copy)
+            frame_resized = cv2.resize(frame_copy, (HEIGHT, HEIGHT), interpolation=cv2.INTER_LINEAR)
+            cv2.imshow("TRANSFORMATION", frame_resized)
+            # cv2.imshow("TRANSFORMATION", frame_copy)
 
             is_turning_point = (i == 0 or i == len(bounce_frames) // 2 or i == len(bounce_frames) - 1)
             wait = longer_delay_ms if is_turning_point else delay_ms
