@@ -36,17 +36,21 @@ def transfer_style(content_image,
     return stylized_image
 
 
-def generate_image_list(content_image):
+def generate_image_list(content_image, should_stop=lambda: False):
     style_path = get_random_style_image()
     frames = []
     start_time = time.time()
     for i in range(AMOUNT_PICS):
+        if should_stop():
+            logging.info(f"Stopping generate_image_list early at iteration {i + 1}")
+            break
+
         print(f"Iteration {i + 1}")
         content_image = transfer_style(content_image, style_path)
 
         img_rgb = cv2.cvtColor(content_image, cv2.COLOR_BGR2RGB)
         frames.append(Image.fromarray(img_rgb))
-    logging.info("Stylising {} pics took {:.2f} sec".format(AMOUNT_PICS, time.time() - start_time))
 
+    logging.info("Stylising {} pics took {:.2f} sec".format(len(frames), time.time() - start_time))
     return frames
 
