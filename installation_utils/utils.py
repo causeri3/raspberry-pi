@@ -79,12 +79,8 @@ def draw_loading_bar(frame, progress, bar_width=400, bar_height=20):
     # white progress bar
     cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 255, 255), -1)
 
-    # animated dots
-    dot_count = int((time.time() * 2) % 4)  # cycles 0..3, update 2x per sec
-    dots = "." * dot_count
-
     font = cv2.FONT_HERSHEY_SIMPLEX
-    text = f"LOADING YOUR TRANSFORMATION{dots}"
+    text = f"LOADING YOUR TRANSFORMATION"
     text_scale = 0.6
     text_thickness = 2
     text_size, _ = cv2.getTextSize(text, font, text_scale, text_thickness)
