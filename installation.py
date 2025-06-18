@@ -33,16 +33,24 @@ selfie_lock = threading.Lock()
 selfie_ready_event = threading.Event()
 selfie_image = None
 
+def request_sdxlturbo_with_flag(selfie, result_container, stop_flag):
+    request_sdxlturbo(selfie, result_container)
+    if result_container.get('success', False):
+        stop_flag.set()
+
 def processing_worker(selfie):
     try:
         sdxl_result = {}
-        sdxl_thread = threading.Thread(target=request_sdxlturbo, args=(selfie, sdxl_result))
+        stop_flag = threading.Event()
+
+        sdxl_thread = threading.Thread(
+            target=request_sdxlturbo_with_flag,
+            args=(selfie, sdxl_result, stop_flag))
         sdxl_thread.start()
 
         logging.info("Generating NST images...")
-        nst_images = generate_image_list(selfie)
-
-        sdxl_thread.join(timeout=600)
+        nst_images = generate_image_list(selfie, should_stop=stop_flag.is_set)
+        sdxl_thread.join(timeout=180)
 
         if sdxl_result.get('success', False):
             gif_frames = [img for img in sdxl_result['images']]
