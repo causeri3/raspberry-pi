@@ -14,6 +14,11 @@ from installation_utils.utils import (request_sdxlturbo,
 
 WIDTH, HEIGHT  = (1280, 1024)
 
+FPS = 1
+PAUSE = 1
+LONGER_DELAY_MS = max(int(PAUSE * 1000), 1)
+LOADING_DURATION_SEC = 130
+
 logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
 
 # if args.cam_device_number:
@@ -50,7 +55,7 @@ def processing_worker(selfie):
 
         logging.info("Generating NST images...")
         nst_images = generate_image_list(selfie, should_stop=stop_flag.is_set)
-        sdxl_thread.join(timeout=180)
+        sdxl_thread.join(timeout=LOADING_DURATION_SEC)
 
         if sdxl_result.get('success', False):
             logging.info(f"SDXLTurbo took {time.time() - sdxl_start} sec")
@@ -81,11 +86,9 @@ def selfie_capture_worker():
 
 def main_loop():
     is_generating = False
-    fps = 1
-    pause = 1
+
     next_selfie_time = 0
-    longer_delay_ms = max(int(pause * 1000), 1)
-    loading_duration_sec = 110
+
     loading_start_time = 0
 
     threading.Thread(target=selfie_capture_worker).start()
@@ -105,7 +108,7 @@ def main_loop():
             if frames:
                 frames_bgr = [cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR) for img in frames]
                 bounce_frames = frames_bgr + frames_bgr[-2::-1]
-                delay_ms = max(int(1000 / fps), 1)
+                delay_ms = max(int(1000 / FPS), 1)
             else:
                 bounce_frames = [np.random.randint(0, 256, (HEIGHT, HEIGHT, 3), dtype=np.uint8)]
                 delay_ms = 0
@@ -115,7 +118,7 @@ def main_loop():
 
             # Draw loading bar if generating
             if is_generating:
-                progress = min(1.0, (time.time() - loading_start_time) / loading_duration_sec)
+                progress = min(1.0, (time.time() - loading_start_time) / LOADING_DURATION_SEC)
                 draw_loading_bar(frame_copy, progress)
 
             frame_resized = cv2.resize(frame_copy, (HEIGHT, HEIGHT), interpolation=cv2.INTER_LINEAR)
@@ -135,7 +138,7 @@ def main_loop():
             # cv2.imshow("TRANSFORMATION", frame_copy)
 
             is_turning_point = (i == 0 or i == len(bounce_frames) // 2 or i == len(bounce_frames) - 1)
-            wait = longer_delay_ms if is_turning_point else delay_ms
+            wait = LONGER_DELAY_MS if is_turning_point else delay_ms
 
             key = cv2.waitKey(wait)
             if key == 27:  # ESC to quit
