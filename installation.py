@@ -85,7 +85,7 @@ def main_loop():
     pause = 1
     next_selfie_time = 0
     longer_delay_ms = max(int(pause * 1000), 1)
-    loading_duration_sec = 60
+    loading_duration_sec = 110
     loading_start_time = 0
 
     threading.Thread(target=selfie_capture_worker).start()
@@ -119,7 +119,19 @@ def main_loop():
                 draw_loading_bar(frame_copy, progress)
 
             frame_resized = cv2.resize(frame_copy, (HEIGHT, HEIGHT), interpolation=cv2.INTER_LINEAR)
-            cv2.imshow("TRANSFORMATION", frame_resized)
+
+            # black background
+            canvas = np.zeros((HEIGHT, WIDTH, 3), dtype=np.uint8)
+
+            # centering the square frame
+            x_offset = (WIDTH - HEIGHT) // 2
+            y_offset = (HEIGHT - HEIGHT) // 2
+
+            # square frame onto the background
+            canvas[y_offset:y_offset + HEIGHT, x_offset:x_offset + HEIGHT] = frame_resized
+
+            cv2.imshow("TRANSFORMATION", canvas)
+            # cv2.imshow("TRANSFORMATION", frame_resized)
             # cv2.imshow("TRANSFORMATION", frame_copy)
 
             is_turning_point = (i == 0 or i == len(bounce_frames) // 2 or i == len(bounce_frames) - 1)
