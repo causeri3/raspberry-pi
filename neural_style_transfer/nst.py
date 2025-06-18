@@ -9,7 +9,7 @@ import random
 import os
 
 REZ = (1000, 1000)
-AMOUNT_PICS = 5
+AMOUNT_PICS = 4
 
 def get_random_style_image(style_folder=r"neural_style_transfer/style_images"):
     all_files = os.listdir(style_folder)
