@@ -4,7 +4,6 @@ import io
 import numpy as np
 import logging
 import cv2
-import time
 
 def request_sdxlturbo(selfie, result_container):
     try:
@@ -88,3 +87,18 @@ def draw_loading_bar(frame, progress, bar_width=400, bar_height=20):
     text_y = y1 - 15  # 15 pixels above bar
 
     cv2.putText(frame, text, (text_x, text_y), font, text_scale, (255, 255, 255), text_thickness, cv2.LINE_AA)
+
+
+def draw_come_closer(frame):
+    """Draw a horizontal loading bar with noise background and animated dots."""
+    x_center = frame.shape[1] // 2
+    y_center = frame.shape[0] // 2
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    text = f"COME CLOSER"
+    text_scale = 0.9
+    text_thickness = 2
+    text_size, _ = cv2.getTextSize(text, font, text_scale, text_thickness)
+    text_x = x_center - text_size[0] // 2
+
+    cv2.putText(frame, text, (text_x, y_center), font, text_scale, (255, 255, 255), text_thickness, cv2.LINE_AA)
+

@@ -8,7 +8,8 @@ import os
 
 from neural_style_transfer.nst import generate_image_list
 from installation_utils.utils import (request_sdxlturbo,
-                                      draw_loading_bar)
+                                      draw_loading_bar,
+                                      draw_come_closer)
 # from utils.args import get_args
 #
 # args, unknown = get_args()
@@ -37,6 +38,7 @@ new_frames_event = threading.Event()
 selfie_lock = threading.Lock()
 selfie_ready_event = threading.Event()
 selfie_image = None
+wait_screen = True
 
 def request_sdxlturbo_with_flag(selfie, result_container, stop_flag):
     request_sdxlturbo(selfie, result_container)
@@ -66,10 +68,12 @@ def processing_worker(selfie):
 
         with gif_lock:
             global frames
+            global wait_screen
             frames = gif_frames
+            wait_screen = False
             new_frames_event.set()
     except Exception as e:
-        logging.exception("processing_worker crashed! Exiting whole process...")
+        logging.exception(f"processing_worker crashed with Exception {e}")
         os._exit(1)
 
 def selfie_capture_worker():
@@ -84,11 +88,10 @@ def selfie_capture_worker():
         selfie_image = selfie
         selfie_ready_event.set()
 
-def main_loop():
+def main_loop(come_closer_screen=False):
     is_generating = False
-
+    global wait_screen
     next_selfie_time = 0
-
     loading_start_time = 0
 
     threading.Thread(target=selfie_capture_worker).start()
@@ -105,7 +108,7 @@ def main_loop():
 
         # Draw gif frame or noise
         with gif_lock:
-            if frames:
+            if frames and not wait_screen:
                 frames_bgr = [cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR) for img in frames]
                 bounce_frames = frames_bgr + frames_bgr[-2::-1]
                 delay_ms = max(int(1000 / FPS), 1)
@@ -120,6 +123,9 @@ def main_loop():
             if is_generating:
                 progress = min(1.0, (time.time() - loading_start_time) / LOADING_DURATION_SEC)
                 draw_loading_bar(frame_copy, progress)
+
+            elif wait_screen:
+                draw_come_closer(frame_copy)
 
             frame_resized = cv2.resize(frame_copy, (HEIGHT, HEIGHT), interpolation=cv2.INTER_LINEAR)
 
@@ -152,9 +158,13 @@ def main_loop():
                 next_selfie_time = time.time() + 30
 
             if not selfie_ready_event.is_set() and not is_generating and next_selfie_time != 0:
+                wait_screen = False
+                is_generating = False
                 logging.info(f"Waiting")
 
                 if time.time() >= next_selfie_time:
+                    if come_closer_screen:
+                        wait_screen = True
                     threading.Thread(target=selfie_capture_worker).start()
                     next_selfie_time = 0
 
@@ -164,5 +174,5 @@ if __name__ == "__main__":
     try:
         main_loop()
     except Exception as e:
-        logging.exception("MAIN LOOP crashed! Exiting...")
+        logging.exception(f"Min loop crashed with Exception {e}")
         os._exit(1)
