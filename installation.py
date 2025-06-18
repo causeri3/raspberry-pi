@@ -3,8 +3,9 @@ from yolo_v8_face.utils.video import Stream
 import cv2
 import threading
 import numpy as np
-from neural_style_transfer.nst import generate_image_list
+import time
 
+from neural_style_transfer.nst import generate_image_list
 from installation_utils.utils import (request_sdxlturbo
                                       )
 # from utils.args import get_args
@@ -64,11 +65,10 @@ def selfie_capture_worker():
         selfie_ready_event.set()
 
 def main_loop():
-    frame_index = 0
     is_generating = False
-    fps = 6
-    pause = 2
-
+    fps = 1
+    pause = 1
+    next_selfie_time = 0
     longer_delay_ms = max(int(pause * 1000), 1)
 
     # Start first selfie capture thread
@@ -91,12 +91,12 @@ def main_loop():
                 delay_ms = max(int(1000 / fps), 1)
             else:
                 bounce_frames = [np.random.randint(0, 256, (512, 512, 3), dtype=np.uint8)]
-                delay_ms = 100
+                delay_ms = 0
 
         for i, frame in enumerate(bounce_frames):
             cv2.imshow("TRANSFORMATION", frame)
 
-            is_turning_point = (i == 0 or i == len(frames_bgr) - 1)
+            is_turning_point = (i == 0 or i == len(bounce_frames) // 2 or i == len(bounce_frames) - 1)
             wait = longer_delay_ms if is_turning_point else delay_ms
 
             key = cv2.waitKey(wait)
@@ -104,12 +104,18 @@ def main_loop():
                 cv2.destroyAllWindows()
                 return
 
+            # Check if we should start next selfie capture
+            if new_frames_event.is_set():
+                is_generating = False
+                new_frames_event.clear()
+                next_selfie_time = time.time() + 30
 
-        # If new gif frames ready → start new selfie capture
-        if new_frames_event.is_set():
-            is_generating = False
-            new_frames_event.clear()
-            threading.Thread(target=selfie_capture_worker).start()
+            if not selfie_ready_event.is_set() and not is_generating and next_selfie_time != 0:
+                logging.info(f"Waiting")
+
+                if time.time() >= next_selfie_time:
+                    threading.Thread(target=selfie_capture_worker).start()
+                    next_selfie_time = 0
 
     cv2.destroyAllWindows()
 
