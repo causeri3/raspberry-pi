@@ -4,6 +4,7 @@ import cv2
 import threading
 import numpy as np
 import time
+import os
 
 from neural_style_transfer.nst import generate_image_list
 from installation_utils.utils import (request_sdxlturbo,
@@ -37,6 +38,13 @@ selfie_lock = threading.Lock()
 selfie_ready_event = threading.Event()
 selfie_image = None
 
+def watchdog(target_thread):
+    while True:
+        time.sleep(1)
+        if not target_thread.is_alive():
+            logging.error("WATCHDOG: Worker crashed! Exiting process...")
+            os._exit(1)
+
 def request_sdxlturbo_with_flag(selfie, result_container, stop_flag):
     request_sdxlturbo(selfie, result_container)
     if result_container.get('success', False):
@@ -69,7 +77,6 @@ def processing_worker(selfie):
             new_frames_event.set()
     except Exception as e:
         logging.exception("processing_worker crashed! Exiting whole process...")
-        import os
         os._exit(1)
 
 def selfie_capture_worker():
@@ -161,4 +168,8 @@ def main_loop():
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    main_loop()
+    try:
+        main_loop()
+    except Exception as e:
+        logging.exception("MAIN LOOP crashed! Exiting...")
+        os._exit(1)
