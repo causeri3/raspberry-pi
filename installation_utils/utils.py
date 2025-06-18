@@ -59,3 +59,18 @@ def play_gif_frames(
         if not loop:
             break
 
+
+def draw_loading_bar(frame, progress, bar_width=400, bar_height=20):
+    # Bar position
+    x_center = frame.shape[1] // 2
+    y_top = 20  # pixels from top
+
+    x1 = x_center - bar_width // 2
+    x2 = x1 + int(bar_width * progress)
+    y1 = y_top
+    y2 = y_top + bar_height
+
+    # Draw background bar (gray)
+    cv2.rectangle(frame, (x_center - bar_width // 2, y1), (x_center + bar_width // 2, y2), (100, 100, 100), -1)
+    # Draw progress bar (white)
+    cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 255, 255), -1)

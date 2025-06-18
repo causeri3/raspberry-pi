@@ -6,8 +6,8 @@ import numpy as np
 import time
 
 from neural_style_transfer.nst import generate_image_list
-from installation_utils.utils import (request_sdxlturbo
-                                      )
+from installation_utils.utils import (request_sdxlturbo,
+                                      draw_loading_bar)
 # from utils.args import get_args
 #
 # args, unknown = get_args()
@@ -84,6 +84,8 @@ def main_loop():
     pause = 1
     next_selfie_time = 0
     longer_delay_ms = max(int(pause * 1000), 1)
+    loading_duration_sec = 60
+    loading_start_time = 0
 
     threading.Thread(target=selfie_capture_worker).start()
 
@@ -94,6 +96,7 @@ def main_loop():
                 selfie = selfie_image
             threading.Thread(target=processing_worker, args=(selfie,)).start()
             is_generating = True
+            loading_start_time = time.time()
             selfie_ready_event.clear()
 
         # Draw gif frame or noise
@@ -107,7 +110,14 @@ def main_loop():
                 delay_ms = 0
 
         for i, frame in enumerate(bounce_frames):
-            cv2.imshow("TRANSFORMATION", frame)
+            frame_copy = frame.copy()
+
+            # Draw loading bar if generating
+            if is_generating:
+                progress = min(1.0, (time.time() - loading_start_time) / loading_duration_sec)
+                draw_loading_bar(frame_copy, progress)
+
+            cv2.imshow("TRANSFORMATION", frame_copy)
 
             is_turning_point = (i == 0 or i == len(bounce_frames) // 2 or i == len(bounce_frames) - 1)
             wait = longer_delay_ms if is_turning_point else delay_ms
