@@ -64,8 +64,11 @@ class Stream:
         device_numbers = self.choose_device(self.available_devices)
         # Initialize the webcam
         cap = cv2.VideoCapture(device_numbers)
-        window_name = "Your camera, device no: {}".format(device_numbers)
-        cv2.namedWindow(window_name, cv2.WINDOW_AUTOSIZE)
+        if self.see_detection:
+            window_name = "Your camera, device no: {}".format(device_numbers)
+            cv2.namedWindow(window_name, cv2.WINDOW_AUTOSIZE)
+
+        best_crop = None
 
         while cap.isOpened():
             start_time = time.time()
@@ -92,8 +95,9 @@ class Stream:
                 break
 
         cap.release()
-        cv2.destroyWindow(window_name)
-        cv2.waitKey(1)
+        if self.see_detection:
+            cv2.destroyWindow(window_name)
+            cv2.waitKey(1)
         return best_crop
 
 
