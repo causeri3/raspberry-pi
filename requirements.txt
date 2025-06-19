@@ -1,0 +1,9 @@
+numpy
+opencv-python-headless
+Pillow
+tensorflow
+tensorflow-hub
+accelerate
+huggingface-hub
+supervision
+ultralytics
