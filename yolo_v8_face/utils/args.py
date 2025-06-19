@@ -12,9 +12,9 @@ def get_args():
     parser.add_argument('-sd',
                         '--see-detection',
                         required=False,
-                        action='store_false',
+                        action='store_true',
                         help="""See object detection in streamed video output.
-                        If argument in command, you only get the json payload (boolean)""")
+                        If argument in command, you will se the video stream with bounding boxes""")
 
     parser.add_argument('-nt',
                         '--no-tracking',

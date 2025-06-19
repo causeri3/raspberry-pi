@@ -39,8 +39,8 @@ class Stream:
         if len(device_numbers) < 2:
             return device_numbers[0]
         # default for my preferred set-up (no deeper meaning)
-        elif len(device_numbers) == 3:
-            return device_numbers[1]
+        elif len(device_numbers) == 2:
+            return device_numbers[0]
         else:
             return device_numbers[-1]
 
