@@ -51,6 +51,8 @@ class Transformation:
         self.selfie = None
         self.come_closer_screen = True
         self.stream = Stream(see_detection=args.see_detection, available_devices=device)
+        # how many % of the screen does the face need to fill for a selfie to be taken - float between 0 and 1
+        self.face_size_threshold=0.15
 
 
 
@@ -84,7 +86,7 @@ class Transformation:
             self.new_frames_event.set()
 
     def selfie_capture_worker(self):
-        self.selfie = self.stream.draw_boxes()
+        self.selfie = self.stream.draw_boxes(self.face_size_threshold)
         logging.info("Selfie captured.")
 
         with self.selfie_lock:

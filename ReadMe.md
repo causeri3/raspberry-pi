@@ -13,6 +13,7 @@ Most interesting settings you will find in `selfusion_utils.transformation`, suc
 - come closer screen or not  
 - window size (adapted to monitor)  
 - prompt
+- face size threshold
 
 ---
 Another bit that's might be fun: Adding more style pictures — they are picked randomly.  
