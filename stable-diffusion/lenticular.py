@@ -1,10 +1,19 @@
+"""
+This script was part if teh SD offline solution that I discarded, because more than one image wouldn't be feasible time wise.
+And one image looked crap, even with this rolling effect in this script.
+"""
+
+
 import cv2
 import numpy as np
 import time
 import math
 
-img1 = cv2.imread("/Downloads/img1.jpg").astype(np.float32) / 255.0
-img2 = cv2.imread("/Downloads/img2.jpg").astype(np.float32) / 255.0
+path_1 = "img1.jpg"
+path_2 = "img2.jpg"
+
+img1 = cv2.imread(path_1).astype(np.float32) / 255.0
+img2 = cv2.imread(path_2).astype(np.float32) / 255.0
 
 height, width, channels = img1.shape
 

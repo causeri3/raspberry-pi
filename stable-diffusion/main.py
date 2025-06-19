@@ -1,20 +1,21 @@
+"""
+This script was just for testing if I could run a smaller SD model on the PI itself - as offline solution.
+It runs, but slow af.
+My offline solution ended up to be Neural Style Transfer
+"""
+
 from diffusers import AutoPipelineForImage2Image
 from diffusers.utils import load_image
 import torch
-from PIL import ImageOps
 from time import time
-import logging
 from pathlib import Path
 from datetime import datetime
 import math
 
-image_path = "path"
+image_path = "img1.jpg"
 # ___________ LOAD MODEL _________________ #
 pipe = AutoPipelineForImage2Image.from_pretrained("sd-legacy/stable-diffusion-v1-5",
-                                                  #torch_dtype=torch.float32,
                                                   low_cpu_mem_usage=True,
-                                                  #variant="fp16",
-                                                  #cache_dir="/models-cache"
                                                   )
 pipe.to("cpu")
 
@@ -26,27 +27,6 @@ NUM_INFERENCE_STEPS=15
 STRENGTH = 0.5
 GUIDANCE_SCALE=8
 PROMPT = "dmt"
-
-# mdma
-# amphetamin
-# methamphetamin
-# heroin
-# cocaine
-# ketamine
-# cannabis
-# dmt
-# lsd
-# alcohol
-
-# double exposure
-# double exposure movement
-# detailed scene
-# 8k
-# glitch art
-# cinematic
-# DMT
-# superrealistic
-
 REZ = (512, 512)
 # ___________ YALLA _________________ #
 images_list = []
