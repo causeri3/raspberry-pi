@@ -1,3 +1,5 @@
+"""Just run once to save teh style images in an optimised format"""
+
 import cv2
 import os
 
