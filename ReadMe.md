@@ -56,9 +56,39 @@ uv pip install -r requirements.txt
 Some of the code in this repo was used for experimentation (such as the `stable-diffusion` folder or `yolo_onnx_openvino.py`, they need more dependencies, so most directories have their own requirements files)
 
 
-### Run
+## Run
 * with uv
  `uv run selfusion.py`
 
 * standard
  `python selfusion.py`
+
+### Systemd
+
+I run it as systemd service:
+```
+[Unit]
+Description=Fusion Raspberry Process
+After=graphical-session.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/pi/src/raspberry-pi
+ExecStart=/home/pi/src/selfusion_venv/bin/python /home/pi/src/selfusion/selfusion.py
+Restart=on-failure
+RestartSec=5
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/pi/.Xauthority
+
+[Install]
+WantedBy=default.target
+```
+that file goes under:
+`~/.config/systemd/user/fusion.service`
+
+**run service**
+```bash
+systemctl --user daemon-reload
+systemctl --user enable fusion.service
+systemctl --user start fusion.service
+```
