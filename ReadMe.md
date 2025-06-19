@@ -1,2 +1,63 @@
-sudo apt-get install libgtk2.0-dev pkg-config
+# Selfusion
+### Repository for an art installation  
+*(made for Fusion 2025)*
 
+Takes automated selfies, generates more pictures from that, and plays a bouncing gif.
+
+---
+## Settings
+Most interesting settings you will find in `selfusion_utils.transformation`, such as:  
+- gif delay  
+- waiting time  
+- loading bar time  
+- come closer screen or not  
+- window size (adapted to monitor)  
+- prompt
+
+---
+Another bit that's might be fun: Adding more style pictures — they are picked randomly.  
+You can find them in `neural_style_transfer.style_images`.
+
+---
+## Hardware
+- Raspberry Pi 5 (16GB)
+
+---
+## Software
+### Dependencies
+
+#### SDXLTurbo API
+It's meant to work with [sdxlturbo-api](https://github.com/causeri3/sdxlturbo-api) hosted on some machine (runs well with mps on my Mac or cuda on a cloud VM with GPU - if you want you can test just the sdxlturbo code straight on Colab with T4, was super easy).
+
+Anyway, it still has offline functionality. If it cannot get results from the Stable diffusion API, it generates pictures with neural style transfer on the local machine / the pi.
+
+
+#### Linux
+
+```bash
+sudo apt-get install libgtk2.0-dev pkg-config
+```
+
+#### Python
+The raspberry had `python 3.11` preinstalled
+
+```bash
+pip install -r requirements.txt
+```
+Gets it running.
+
+Or even better if you use [uv](https://docs.astral.sh/uv/getting-started/installation/#__tabbed_1_1), run in the directory of this repo:
+```sh
+uv venv --python 3.11
+uv pip install -r requirements.txt
+```
+**Note**:
+Some of the code in this repo was used for experimentation (such as the `stable-diffusion` folder or `yolo_onnx_openvino.py`, they need more dependencies, so most directories have their own requirements files)
+
+
+### Run
+* with uv
+ `uv run selfusion.py`
+
+* standard
+ `python selfusion.py`
