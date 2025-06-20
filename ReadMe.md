@@ -105,4 +105,4 @@ systemctl --user start fusion.service
 
 
 ---
-This project is licensed under AGPL v3
+This project is licensed under AGPL v3+
