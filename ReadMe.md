@@ -2,7 +2,16 @@
 ### Repository for an art installation  
 *(made for Fusion 2025)*
 
+---
+
 Takes automated selfies, generates more pictures from that, and plays a bouncing gif.
+
+---
+
+Using:
+- **Automated Selfies**: Yolov8 trained by [arnabdhar](https://huggingface.co/arnabdhar/YOLOv8-Face-Detection)
+- **Offline image generation**: Neural Style Transfer [deepeshdm](https://github.com/deepeshdm/PixelMix/tree/main)
+- **Online image generation**: [Stable Diffusion XL Turbo](https://huggingface.co/stabilityai/sdxl-turbo) in repo [sdxlturbo-api](https://github.com/causeri3/sdxlturbo-api)
 
 ---
 ## Settings
@@ -55,7 +64,7 @@ uv pip install -r requirements.txt
 **Note**:
 Some of the code in this repo was used for experimentation (such as the `stable-diffusion` folder or `yolo_onnx_openvino.py`, they need more dependencies, so most directories have their own requirements files)
 
-
+---
 ## Run
 * with uv
  `uv run selfusion.py`
@@ -92,3 +101,8 @@ systemctl --user daemon-reload
 systemctl --user enable fusion.service
 systemctl --user start fusion.service
 ```
+
+
+
+---
+This project is licensed under AGPL v3

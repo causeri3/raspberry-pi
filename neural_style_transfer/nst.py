@@ -1,3 +1,10 @@
+"""
+This file and the directory *model* includes code from https://github.com/deepeshdm/PixelMix/tree/main,
+originally licensed under GPL v2 (or later).
+Modified by causeri3 on 20.7.2025.
+Changes: simplified for use case, refactored and added function generate_image_list
+"""
+
 import cv2
 import numpy as np
 import tensorflow as tf
