@@ -4,14 +4,22 @@ import io
 import numpy as np
 import logging
 
+DATA = {
+    'prompt': 'dmt',
+    'amount_pics': 16,
+    'num_inference_steps': 50,
+    'strength_min': 0.05,
+    'strength_max': 0.35,
+    'guidance_scale': 8
+}
+
 def request_sdxlturbo(selfie,
                       result_container,
-                      prompt='dmt',
+                      data=DATA,
                       # 10 min, but thread kills it anyway earlier with LOADING_DURATION_SEC
                       timeout=600):
     try:
         files = _selfie_to_file_data(selfie)
-        data = {'prompt': prompt}
 
         response = requests.post("http://localhost:8000/sdxlturbo",
                                   files=files,
