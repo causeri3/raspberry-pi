@@ -26,7 +26,7 @@ def get_args():
     parser.add_argument('-conf',
                         '--confidence-threshold',
                         required=False,
-                        default=0.25,
+                        default=0.8,
                         type=float,
                         help="""Confidence threshold for detected object (float between 0 and 1)""")
     parser.add_argument('-iou',
