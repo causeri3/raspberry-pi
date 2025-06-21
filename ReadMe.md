@@ -14,15 +14,20 @@ Using:
 - **Online image generation**: [Stable Diffusion XL Turbo](https://huggingface.co/stabilityai/sdxl-turbo) in repo [sdxlturbo-api](https://github.com/causeri3/sdxlturbo-api)
 
 ---
-## Settings
-Most interesting settings you will find in `selfusion_utils.transformation`, such as:  
+## Settings / Args
+See all arguments:
+* with uv `uv run main.py --help`
+* standard `python main.py --help`
+
+Most interesting settings you will find in `selfusion_utils.args`, such as:  
 - gif delay  
 - waiting time  
 - loading bar time  
-- come closer screen or not  
-- window size (adapted to monitor)  
-- prompt
+- come closer screen or not
 - face size threshold
+- yolo settings (confidence, IoU)
+- diffuser settings (strength, inference steps, prompt ...)
+
 
 ---
 Another bit that's might be fun: Adding more style pictures — they are picked randomly.  

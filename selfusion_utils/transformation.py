@@ -19,12 +19,11 @@ else:
 
 
 WIDTH, HEIGHT  = (1280, 1024)
-FPS = 4
-GIF_PAUSE_SEC = 1
-LONGER_DELAY_MS = max(int(GIF_PAUSE_SEC * 1000), 1)
-LOADING_DURATION_SEC = 130
-WAIT_SEC = 45
-PROMPT = "dmt"
+
+FPS = args.fps
+LONGER_DELAY_MS = max(int(args.gif_pause_sec * 1000), 1)
+LOADING_DURATION_SEC = args.loading_duration_sec
+WAIT_SEC = args.wait_sec
 
 
 # Global exception handler for uncaught exceptions in threads
@@ -39,9 +38,7 @@ threading.excepthook = custom_excepthook
 
 
 class Transformation:
-    def __init__(self,
-                 prompt: str = PROMPT):
-        self.prompt = prompt
+    def __init__(self):
         self.frames = []
         self.gif_lock = threading.Lock()
         self.new_frames_event = threading.Event()
@@ -49,15 +46,14 @@ class Transformation:
         self.selfie_ready_event = threading.Event()
         self.wait_screen = True
         self.selfie = None
-        self.come_closer_screen = True
-        self.stream = Stream(see_detection=args.see_detection, available_devices=device)
-        # how many % of the screen does the face need to fill for a selfie to be taken - float between 0 and 1
-        self.face_size_threshold=0.15
-
+        self.come_closer_screen = args.come_closer_screen
+        self.stream = Stream(see_detection=args.see_detection,
+                             available_devices=device,
+                             face_size_threshold=args.face_size_threshold)
 
 
     def request_sdxlturbo_with_flag(self, result_container, stop_flag):
-        request_sdxlturbo(self.selfie, result_container, self.prompt)
+        request_sdxlturbo(self.selfie, result_container)
         if result_container.get('success', False):
             stop_flag.set()
 
@@ -86,7 +82,7 @@ class Transformation:
             self.new_frames_event.set()
 
     def selfie_capture_worker(self):
-        self.selfie = self.stream.draw_boxes(self.face_size_threshold)
+        self.selfie = self.stream.draw_boxes()
         logging.info("Selfie captured.")
 
         with self.selfie_lock:

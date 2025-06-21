@@ -5,10 +5,12 @@ import time
 
 from yolo_v8_face.utils.predict import Predict
 
+
 class Stream:
     def __init__(self,
                  see_detection: bool = True,
-                 available_devices: list | None = None):
+                 available_devices: list | None = None,
+                 face_size_threshold:float = .25):
 
         self.predict_class = Predict()
 
@@ -16,7 +18,7 @@ class Stream:
         self.available_devices = available_devices
         self.see_detection = see_detection
         # how many % of the screen does the face need to fill for a selfie to be taken - float between 0 and 1
-        self.face_size_threshold = 0.15
+        self.face_size_threshold = face_size_threshold
 
     @staticmethod
     def return_camera_indexes():
@@ -57,7 +59,7 @@ class Stream:
         return combined_img, json_payload, frame_copy
 
 
-    def draw_boxes(self, face_size_threshold=None):
+    def draw_boxes(self):
 
         if not self.available_devices:
             self.available_devices = self.return_camera_indexes()
@@ -91,7 +93,7 @@ class Stream:
 
             logging.info("Processing one frame took {:.2f} sec".format(time.time() - start_time))
 
-            best_crop = self.close_up_crop(json_payload, raw_frame, face_size_threshold)
+            best_crop = self.close_up_crop(json_payload, raw_frame)
             if best_crop is not None:
                 break
 
@@ -103,11 +105,10 @@ class Stream:
 
 
 
-    def close_up_crop(self, json_payload, frame, face_size_threshold=None):
+    def close_up_crop(self, json_payload, frame):
         if not json_payload:
             return None
-        if not face_size_threshold:
-            face_size_threshold = self.face_size_threshold
+        face_size_threshold = self.face_size_threshold
 
         screen_h, screen_w, _ = frame.shape
         screen_area = screen_w * screen_h
