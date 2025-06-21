@@ -8,7 +8,7 @@ from supervision import Detections
 from PIL import Image
 
 from yolo_v8_face.utils.payloads import json_payload, image_payload
-from yolo_v8_face.utils.args import get_args
+from selfusion_utils.args import get_args
 
 
 args, unknown = get_args()

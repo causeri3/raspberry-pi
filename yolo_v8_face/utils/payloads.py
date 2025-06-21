@@ -1,4 +1,4 @@
-from yolo_v8_face.utils.render import draw_boxes, draw_target_dot
+from yolo_v8_face.utils.render import draw_boxes
 
 import logging
 import cv2

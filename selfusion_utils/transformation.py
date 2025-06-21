@@ -8,7 +8,7 @@ import cv2
 from selfusion_utils.call_sdxlturbo import request_sdxlturbo
 from neural_style_transfer.nst import generate_image_list
 from yolo_v8_face.utils.video import Stream
-from yolo_v8_face.utils.args import get_args
+from selfusion_utils.args import get_args
 
 args, unknown = get_args()
 if args.cam_device_number:
