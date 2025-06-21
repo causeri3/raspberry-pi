@@ -16,8 +16,8 @@ Using:
 ---
 ## Settings / Args
 See all arguments:
-* with uv `uv run main.py --help`
-* standard `python main.py --help`
+* with uv `uv run selfusion.py --help`
+* standard `python selfusion.py --help`
 
 Most interesting settings you will find in `selfusion_utils.args`, such as:  
 - gif delay  
