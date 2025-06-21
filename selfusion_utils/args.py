@@ -36,7 +36,7 @@ def get_args():
                         required=False,
                         default=.15,
                         type=float,
-                        help="""how many % of the screen does the face need to fill for a selfie to be taken - float between 0 and 1""")
+                        help="""how many percentages of the screen does the face need to fill for a selfie to be taken - float between 0 and 1""")
 
     parser.add_argument('-fps',
                         '--fps',
