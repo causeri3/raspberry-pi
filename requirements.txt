@@ -7,3 +7,5 @@ accelerate
 huggingface-hub
 supervision
 ultralytics
+bleak
+bledom

@@ -4,11 +4,13 @@ import time
 import numpy as np
 import os
 import cv2
+import asyncio
 
 from selfusion_utils.call_sdxlturbo import request_sdxlturbo
 from neural_style_transfer.nst import generate_image_list
 from yolo_v8_face.utils.video import Stream
 from selfusion_utils.args import get_args
+from selfusion_utils.leds import LedController
 
 args, unknown = get_args()
 if args.cam_device_number:
@@ -25,6 +27,31 @@ LONGER_DELAY_MS = max(int(args.gif_pause_sec * 1000), 1)
 LOADING_DURATION_SEC = args.loading_duration_sec
 WAIT_SEC = args.wait_sec
 
+
+led_controller = LedController()
+
+
+def led_sync_worker(app):
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    current_state = None
+
+    while True:
+        try:
+            desired_state = "blink" if app.is_generating else "solid"
+
+            if desired_state != current_state:
+                if desired_state == "blink":
+                    loop.run_until_complete(led_controller.blink_white())
+                else:
+                    loop.run_until_complete(led_controller.white())
+
+                current_state = desired_state
+
+            time.sleep(1)  # check once per second
+        except Exception as e:
+            logging.info(f"LED error: {e}")
 
 # Global exception handler for uncaught exceptions in threads
 def custom_excepthook(exc_info):
@@ -46,6 +73,7 @@ class Transformation:
         self.selfie_ready_event = threading.Event()
         self.wait_screen = True
         self.selfie = None
+        self.is_generating = False
         self.come_closer_screen = args.come_closer_screen
         self.stream = Stream(see_detection=args.see_detection,
                              available_devices=device,
@@ -89,7 +117,15 @@ class Transformation:
             self.selfie_ready_event.set()
 
     def run(self):
-        is_generating = False
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(led_controller.connect())
+            threading.Thread(target=led_sync_worker, args=(self,), daemon=True).start()
+        except Exception as e:
+            logging.info(f"LED error: {e}")
+
+        self.is_generating = False
         next_selfie_time = 0
         loading_start_time = 0
 
@@ -97,9 +133,9 @@ class Transformation:
 
         while True:
             # If selfie ready and no processing running → start processing worker
-            if self.selfie_ready_event.is_set() and not is_generating:
+            if self.selfie_ready_event.is_set() and not self.is_generating:
                 threading.Thread(target=self.processing_worker).start()
-                is_generating = True
+                self.is_generating = True
                 loading_start_time = time.time()
                 self.selfie_ready_event.clear()
 
@@ -108,7 +144,7 @@ class Transformation:
                 bounce_frames, delay_ms = self.prepare_bounce_frames()
 
             for i, frame in enumerate(bounce_frames):
-                frame_copy = self.decorate_frame(frame, is_generating, loading_start_time, LOADING_DURATION_SEC)
+                frame_copy = self.decorate_frame(frame, loading_start_time, LOADING_DURATION_SEC)
                 canvas = self.create_canvas(frame_copy)
 
                 cv2.imshow("TRANSFORMATION", canvas)
@@ -124,14 +160,14 @@ class Transformation:
                     return
 
                 if self.new_frames_event.is_set():
-                    is_generating = False
+                    self.is_generating = False
                     self.new_frames_event.clear()
                     # wait for 30 sec
                     next_selfie_time = time.time() + WAIT_SEC
 
-                if not self.selfie_ready_event.is_set() and not is_generating and next_selfie_time != 0:
+                if not self.selfie_ready_event.is_set() and not self.is_generating and next_selfie_time != 0:
                     self.wait_screen = False
-                    is_generating = False
+                    self.is_generating = False
                     logging.info(f"Waiting")
 
                     if time.time() >= next_selfie_time:
@@ -163,11 +199,10 @@ class Transformation:
 
     def decorate_frame(self,
                        frame,
-                       is_generating,
                        loading_start_time,
                        loading_duration):
         frame_copy = frame.copy()
-        if is_generating:
+        if self.is_generating:
             progress = min(1.0, (time.time() - loading_start_time) / loading_duration)
             self.draw_loading_bar(frame_copy, progress)
         elif self.wait_screen:
