@@ -5,7 +5,6 @@ import numpy as np
 import os
 import cv2
 import asyncio
-
 from selfusion_utils.call_sdxlturbo import request_sdxlturbo
 from neural_style_transfer.nst import generate_image_list
 from yolo_v8_face.utils.video import Stream
@@ -19,39 +18,36 @@ if args.cam_device_number:
 else:
     device = None
 
-
-WIDTH, HEIGHT  = (1280, 1024)
-
+WIDTH, HEIGHT = (1280, 1024)
 FPS = args.fps
 LONGER_DELAY_MS = max(int(args.gif_pause_sec * 1000), 1)
 LOADING_DURATION_SEC = args.loading_duration_sec
 WAIT_SEC = args.wait_sec
 
 
-led_controller = LedController()
-
-
 def led_sync_worker(app):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
+    try:
+        led_controller = LedController()
+        loop.run_until_complete(led_controller.connect())
+        current_state = None
+        while True:
+            try:
+                desired_state = "blink" if app.is_generating else "solid"
+                if desired_state != current_state:
+                    if desired_state == "blink":
+                        loop.run_until_complete(led_controller.blink_white())
+                    else:
+                        loop.run_until_complete(led_controller.white())
+                    current_state = desired_state
+                time.sleep(1)  # check once per second
+            except Exception as e:
+                logging.info(f"LED error: {e}")
+                break
+    except Exception as e:
+        logging.info(f"LED error: {e}")
 
-    current_state = None
-
-    while True:
-        try:
-            desired_state = "blink" if app.is_generating else "solid"
-
-            if desired_state != current_state:
-                if desired_state == "blink":
-                    loop.run_until_complete(led_controller.blink_white())
-                else:
-                    loop.run_until_complete(led_controller.white())
-
-                current_state = desired_state
-
-            time.sleep(1)  # check once per second
-        except Exception as e:
-            logging.info(f"LED error: {e}")
 
 # Global exception handler for uncaught exceptions in threads
 def custom_excepthook(exc_info):
@@ -59,6 +55,7 @@ def custom_excepthook(exc_info):
     thread = threading.current_thread()
     logging.error(f"Uncaught exception in thread {thread.name}: {exc_info[1]}")  # Log the exception
     os._exit(1)
+
 
 # Set the global exception handler for all threads
 threading.excepthook = custom_excepthook
@@ -117,20 +114,11 @@ class Transformation:
             self.selfie_ready_event.set()
 
     def run(self):
-        try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(led_controller.connect())
-            threading.Thread(target=led_sync_worker, args=(self,), daemon=True).start()
-        except Exception as e:
-            logging.info(f"LED error: {e}")
-
+        threading.Thread(target=led_sync_worker, args=(self,), daemon=True).start()
         self.is_generating = False
         next_selfie_time = 0
         loading_start_time = 0
-
         threading.Thread(target=self.selfie_capture_worker).start()
-
         while True:
             # If selfie ready and no processing running → start processing worker
             if self.selfie_ready_event.is_set() and not self.is_generating:
@@ -250,6 +238,3 @@ class Transformation:
         text_x = x_center - text_size[0] // 2
 
         cv2.putText(frame, text, (text_x, y_center), font, text_scale, (255, 255, 255), text_thickness, cv2.LINE_AA)
-
-
-
