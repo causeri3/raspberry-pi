@@ -34,7 +34,7 @@ def get_args():
     parser.add_argument('-close',
                         '--face-size-threshold',
                         required=False,
-                        default=.15,
+                        default=.05,
                         type=float,
                         help="""how many percentages of the screen does the face need to fill for a selfie to be taken - float between 0 and 1""")
 
